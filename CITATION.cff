@@ -1,0 +1,32 @@
+cff-version: 1.2.0
+message: >-
+  Wenn Sie diese Software verwenden, zitieren Sie sie bitte wie folgt. /
+  If you use this software, please cite it as below.
+title: SVG-Transformer
+abstract: >-
+  Transformiert AutoCAD-Zeichnungen (DXF) von Friedhofsplänen in strukturierte,
+  im MonArch-System annotierbare SVG-Dateien und kartiert bestehende Pläne aus
+  CSV-Tabellen. Entstanden im Projekt Steinerne Zeugen digital. /
+  Transforms AutoCAD drawings (DXF) of cemetery plans into structured SVG files
+  that can be annotated in the MonArch system, and colour-codes existing plans
+  from CSV tables. Developed in the project Steinerne Zeugen digital.
+type: software
+version: 1.0.0
+date-released: '2026-08-12'
+license: MIT
+authors:
+  - family-names: Arera-Rütenik
+    given-names: Tobias
+    email: tobias.arera-ruetenik@uni-bamberg.de
+    affiliation: >-
+      Arbeitsgruppe Bauforschung und Bauerhalt, Kompetenzzentrum
+      Denkmalwissenschaften und Denkmaltechnologien (KDWT),
+      Otto-Friedrich-Universität Bamberg
+keywords:
+  - DXF
+  - SVG
+  - Bauforschung
+  - Digital Humanities
+  - jüdische Friedhöfe
+  - MonArch
+  - Denkmalpflege

@@ -1,0 +1,15 @@
+# Zeilenenden normalisieren, außer bei Formaten, die davon Schaden nehmen /
+# Normalise line endings, except for formats that would be harmed by it
+* text=auto
+
+# DXF wird von AutoCAD mit CRLF geschrieben und unverändert durchgereicht /
+# DXF is written with CRLF by AutoCAD and passed through untouched
+*.dxf binary
+
+# Notebooks nicht als Text zusammenführen — Konflikte wären unbrauchbar /
+# Do not merge notebooks as text — conflicts would be unusable
+*.ipynb -merge
+
+# Beispieldaten und Ausgaben von der Sprachstatistik ausnehmen /
+# Exclude sample data and output from language statistics
+examples/** linguist-documentation

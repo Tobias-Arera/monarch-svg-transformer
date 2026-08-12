@@ -1,0 +1,21 @@
+# Python
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+.venv/
+venv/
+env/
+
+# Ausgaben des Transformers / transformer output
+examples/output/*
+!examples/output/.gitkeep
+
+# Betriebssystem / operating system
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editoren / editors
+.vscode/
+.idea/
+*.code-workspace

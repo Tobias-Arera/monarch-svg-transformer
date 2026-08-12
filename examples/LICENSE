@@ -1,0 +1,39 @@
+# Lizenz der Beispieldaten / Licence of the sample data
+
+**DE** — Die Dateien in diesem Verzeichnis stehen unter der Lizenz
+**Creative Commons Namensnennung – Weitergabe unter gleichen Bedingungen 4.0
+International (CC BY-SA 4.0)**.
+
+**EN** — The files in this directory are licensed under
+**Creative Commons Attribution-ShareAlike 4.0 International (CC BY-SA 4.0)**.
+
+<https://creativecommons.org/licenses/by-sa/4.0/deed.de>
+<https://creativecommons.org/licenses/by-sa/4.0/>
+
+## Namensnennung / Attribution
+
+```
+Jüdischer Friedhof Walsdorf (wld), Steinerne Zeugen digital.
+Lea Puglisi, Fabio Vohl, Tobias Arera-Rütenik,
+Kompetenzzentrum Denkmalwissenschaften und Denkmaltechnologien (KDWT),
+Otto-Friedrich-Universität Bamberg, 2025. CC BY-SA 4.0
+```
+
+## Inhalt / Contents
+
+| Datei / File | Beschreibung / Description |
+|---|---|
+| `dxf/walsdorf.dxf` | Umzeichnung des Jüdischen Friedhofs Walsdorf aus Punktwolken / redrawing of the Jewish cemetery of Walsdorf from point clouds |
+| `stylesheets/*.xml` | Stylesheets für die vier Darstellungsvarianten / stylesheets for the four display variants |
+| `data/wld-belegung.csv` | Datierung und Sterbejahr der Grabsteine mit Verweisen auf die epidat-Datenbank des Salomon-Ludwig-Steinheim-Instituts / dating and year of death of the grave stones with references to the epidat database of the Salomon Ludwig Steinheim Institute |
+| `prepared/*` | Aus den obigen Daten erzeugte Zwischenstände, als Eingabe für die Modi `json` und `mapping` / intermediate results produced from the above, as input for the `json` and `mapping` modes |
+
+**DE** — Die Angaben in `data/wld-belegung.csv` beziehen sich auf historische
+Bestattungen des 17. bis 20. Jahrhunderts. Die Verweise führen auf die
+epidat-Datenbank (<https://www.steinheim-institut.de/>), in der die Inschriften
+im Volltext erschlossen sind.
+
+**EN** — The entries in `data/wld-belegung.csv` refer to historical burials
+from the 17th to the 20th century. The references point to the epidat database
+(<https://www.steinheim-institut.de/>), where the inscriptions are recorded in
+full text.

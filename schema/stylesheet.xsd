@@ -1,0 +1,664 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified">
+
+  <xs:annotation>
+    <xs:documentation xml:lang="de">
+      Schema der MonArch-Stylesheets für den SVG-Transformer.
+      Version 2026-08-12
+
+      Änderungen gegenüber der Vorversion:
+      1. Das Attribut set_aks war global deklariert, aber im Wurzelelement
+         nicht referenziert. Stylesheets mit set_aks scheiterten deshalb an
+         der Validierung. Jetzt referenziert.
+      2. svg_element besaß mit optionalem max_scale gefolgt von xs:any kein
+         deterministisches Inhaltsmodell; lxml verweigerte die Übersetzung
+         des Schemas. Das xs:any ist durch eine Auswahl der tatsächlich
+         unterstützten Kindelemente ersetzt (path, circle, rect, tspan).
+      3. XML-Deklaration von 1.1 auf 1.0 gesetzt und die XSD-1.1-Markierung
+         entfernt; es werden keine XSD-1.1-Funktionen verwendet.
+      4. marker-type bleibt erforderlich; entfernt ist der widersprüchliche
+         Vorgabewert "path", denn XSD lässt default zusammen mit
+         use="required" nicht zu. Ein Vorgabewert wäre auch inhaltlich falsch,
+         da ohne die Angabe nicht entscheidbar ist, ob ein path oder ein
+         circle entstehen soll.
+      5. offset_vert auf die vier zulässigen Werte eingeschränkt.
+      6. Numerische Werte typisiert: stroke-width, fill-opacity, font-size.
+      7. map_id ist verpflichtend, da der Transformer es zwingend benötigt.
+      8. Zweisprachige Dokumentation ergänzt.
+
+      Dieses Schema ist reines XSD 1.0 und damit für lxml, xmllint und jeden
+      gängigen Validierer geeignet. Bedingte Regeln, die sich in XSD 1.0 nicht
+      ausdrücken lassen (etwa "marker-size erforderlich, wenn
+      marker-type='circle'"), stehen in stylesheet-1.1.xsd.
+
+      Dokumentation: README.md, docs/stylesheet.md
+    </xs:documentation>
+    <xs:documentation xml:lang="en">
+      Schema of the MonArch stylesheets for the SVG transformer.
+      Version 2026-08-12
+
+      Changes compared to the previous version:
+      1. The attribute set_aks was declared globally but not referenced in
+         the root element, so stylesheets carrying it failed validation.
+         It is now referenced.
+      2. svg_element had no deterministic content model (optional max_scale
+         followed by xs:any); lxml refused to compile the schema. The xs:any
+         is replaced by a choice of the child elements actually supported
+         (path, circle, rect, tspan).
+      3. XML declaration changed from 1.1 to 1.0 and the XSD 1.1 marker
+         removed; no XSD 1.1 features are used.
+      4. marker-type remains required; the contradictory default "path" is
+         removed, since XSD does not permit default together with
+         use="required". A default would also be wrong in substance, because
+         without the attribute there is no deciding whether a path or a
+         circle should be produced.
+      5. offset_vert restricted to the four permitted values.
+      6. Numeric values typed: stroke-width, fill-opacity, font-size.
+      7. map_id is mandatory, since the transformer strictly requires it.
+      8. Bilingual documentation added.
+
+      This schema is pure XSD 1.0 and therefore suitable for lxml, xmllint and
+      any common validator. Conditional rules that cannot be expressed in
+      XSD 1.0 (such as "marker-size required when marker-type='circle'") are
+      held in stylesheet-1.1.xsd.
+
+      Documentation: README.md, docs/stylesheet.md
+    </xs:documentation>
+  </xs:annotation>
+
+  <!-- ==================================================================
+       Wurzelelement / Root element
+       ================================================================== -->
+
+  <xs:element name="MonArch_stylesheet">
+    <xs:annotation>
+      <xs:documentation xml:lang="de">Wurzelelement. Bündelt Gruppenstruktur,
+        Styles, Layerzuordnung, Referenzen und Plankopf-Elemente eines
+        Friedhofsplans.</xs:documentation>
+      <xs:documentation xml:lang="en">Root element. Bundles group structure,
+        styles, layer assignment, references and title-block elements of a
+        cemetery plan.</xs:documentation>
+    </xs:annotation>
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="svg_group_sequence"/>
+        <xs:element ref="svg_style_sequence"/>
+        <xs:element ref="dxf_layer_sequence"/>
+        <xs:element ref="dxf_references"/>
+        <xs:element minOccurs="0" ref="svg_element_sequence"/>
+      </xs:sequence>
+      <xs:attribute ref="class" use="required"/>
+      <xs:attribute ref="svg_width" use="required"/>
+      <xs:attribute ref="map_id" use="required"/>
+      <xs:attribute ref="set_aks"/>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:attribute name="class">
+    <xs:annotation>
+      <xs:documentation xml:lang="de">Darstellungsart. "accurate": maßstäbliche
+        Grabsteinumrisse. "marker": Kreissymbole für Kartierungen.
+        "simplified": reserviert.</xs:documentation>
+      <xs:documentation xml:lang="en">Representation type. "accurate": grave
+        outlines to scale. "marker": circle symbols for thematic maps.
+        "simplified": reserved.</xs:documentation>
+    </xs:annotation>
+    <xs:simpleType>
+      <xs:restriction base="xs:string">
+        <xs:enumeration value="accurate"/>
+        <xs:enumeration value="simplified"/>
+        <xs:enumeration value="marker"/>
+      </xs:restriction>
+    </xs:simpleType>
+  </xs:attribute>
+
+  <xs:attribute name="svg_width" type="xs:int">
+    <xs:annotation>
+      <xs:documentation xml:lang="de">Breite des erzeugten SVG in Pixeln. Die
+        Höhe ergibt sich aus dem Seitenverhältnis des Referenzrahmens zuzüglich
+        100 px für den Plankopf.</xs:documentation>
+      <xs:documentation xml:lang="en">Width of the generated SVG in pixels. The
+        height derives from the aspect ratio of the reference frame plus 100 px
+        for the title block.</xs:documentation>
+    </xs:annotation>
+  </xs:attribute>
+
+  <xs:attribute name="map_id">
+    <xs:annotation>
+      <xs:documentation xml:lang="de">Dreibuchstabiges Friedhofskürzel, z. B.
+        "wld". Bildet den Präfix der Grabstätten-IDs und die id des
+        SVG-Wurzelelements.</xs:documentation>
+      <xs:documentation xml:lang="en">Three-letter cemetery code, e.g. "wld".
+        Forms the prefix of the grave IDs and the id of the SVG root
+        element.</xs:documentation>
+    </xs:annotation>
+    <xs:simpleType>
+      <xs:restriction base="xs:string">
+        <xs:pattern value="[a-z]{3}"/>
+      </xs:restriction>
+    </xs:simpleType>
+  </xs:attribute>
+
+  <xs:attribute name="set_aks" type="xs:boolean">
+    <xs:annotation>
+      <xs:documentation xml:lang="de">Reserviert; wird vom Transformer derzeit
+        nicht ausgewertet.</xs:documentation>
+      <xs:documentation xml:lang="en">Reserved; currently not evaluated by the
+        transformer.</xs:documentation>
+    </xs:annotation>
+  </xs:attribute>
+
+  <!-- ==================================================================
+       Gruppenstruktur / Group structure
+       ================================================================== -->
+
+  <xs:element name="svg_group_sequence">
+    <xs:annotation>
+      <xs:documentation xml:lang="de">Gruppen der SVG-Datei in
+        Zeichenreihenfolge; die zuerst genannte Gruppe liegt hinten. Jede
+        Gruppe wird direktes Kind des SVG-Wurzelelements, damit die enthaltenen
+        Elemente in MonArch annotierbar sind.</xs:documentation>
+      <xs:documentation xml:lang="en">Groups of the SVG file in drawing order;
+        the first group listed lies at the back. Each group becomes a direct
+        child of the SVG root element so the contained elements can be
+        annotated in MonArch.</xs:documentation>
+    </xs:annotation>
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element maxOccurs="unbounded" minOccurs="0" ref="background-group"/>
+        <xs:element ref="active-group"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="background-group">
+    <xs:annotation>
+      <xs:documentation xml:lang="de">Hintergrundgruppe. Der Gruppenname
+        "title-block" ist für den Plankopf reserviert.</xs:documentation>
+      <xs:documentation xml:lang="en">Background group. The group name
+        "title-block" is reserved for the title block.</xs:documentation>
+    </xs:annotation>
+    <xs:complexType>
+      <xs:attribute ref="group_name" use="required"/>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="active-group">
+    <xs:annotation>
+      <xs:documentation xml:lang="de">Gruppe der annotierbaren
+        Grabstätten-Elemente. Genau einmal zulässig; nur Layer, die hierauf
+        verweisen, erhalten eine Grabstätten-ID.</xs:documentation>
+      <xs:documentation xml:lang="en">Group of the annotatable grave elements.
+        Permitted exactly once; only layers pointing to it receive a grave
+        ID.</xs:documentation>
+    </xs:annotation>
+    <xs:complexType>
+      <xs:attribute ref="group_name" use="required"/>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:attribute name="group_name" type="xs:ID"/>
+
+  <!-- ==================================================================
+       Styles
+       ================================================================== -->
+
+  <xs:element name="svg_style_sequence">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element maxOccurs="unbounded" minOccurs="1" ref="svg_style"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="svg_style">
+    <xs:annotation>
+      <xs:documentation xml:lang="de">Benannter Style. Die Kindelemente werden
+        eins zu eins als SVG-Präsentationsattribute übernommen: Tag-Name wird
+        Attributname, Textinhalt wird Attributwert. Die Reihenfolge der
+        Kindelemente ist verbindlich.</xs:documentation>
+      <xs:documentation xml:lang="en">Named style. Child elements are
+        transferred one-to-one as SVG presentation attributes: tag name becomes
+        attribute name, text content becomes attribute value. The order of the
+        child elements is binding.</xs:documentation>
+    </xs:annotation>
+    <xs:complexType>
+      <xs:group ref="style_group"/>
+      <xs:attribute ref="style_name" use="required"/>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:group name="style_group">
+    <xs:sequence>
+      <xs:element minOccurs="0" ref="fill"/>
+      <xs:element minOccurs="0" ref="fill-opacity"/>
+      <xs:element minOccurs="0" ref="stroke"/>
+      <xs:element minOccurs="0" ref="stroke-width"/>
+      <xs:element minOccurs="0" ref="stroke-dasharray"/>
+      <xs:element minOccurs="0" ref="stroke-miterlimit"/>
+      <xs:element minOccurs="0" ref="stroke-linejoin"/>
+      <xs:element minOccurs="0" ref="font-family"/>
+      <xs:element minOccurs="0" ref="font-size"/>
+    </xs:sequence>
+  </xs:group>
+
+  <xs:attribute name="style_name" type="xs:ID"/>
+  <xs:attribute name="style_ref" type="xs:IDREF"/>
+
+  <xs:element name="fill" type="paint-value">
+    <xs:annotation>
+      <xs:documentation xml:lang="de">Füllfarbe als Hexwert oder "none".</xs:documentation>
+      <xs:documentation xml:lang="en">Fill colour as hex value or "none".</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+
+  <xs:element name="stroke" type="paint-value">
+    <xs:annotation>
+      <xs:documentation xml:lang="de">Linienfarbe als Hexwert oder "none". Der
+        Unterschied zwischen hellem (wb) und dunklem (bb) Schema liegt im
+        Wesentlichen hier.</xs:documentation>
+      <xs:documentation xml:lang="en">Stroke colour as hex value or "none". The
+        difference between the light (wb) and dark (bb) scheme lies essentially
+        here.</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+
+  <xs:simpleType name="paint-value">
+    <xs:union>
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:pattern value="#[0-9a-fA-F]{3}([0-9a-fA-F]{3})?"/>
+        </xs:restriction>
+      </xs:simpleType>
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="none"/>
+          <xs:enumeration value="inherit"/>
+          <xs:enumeration value="currentColor"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:union>
+  </xs:simpleType>
+
+  <xs:element name="fill-opacity">
+    <xs:simpleType>
+      <xs:restriction base="xs:decimal">
+        <xs:minInclusive value="0"/>
+        <xs:maxInclusive value="1"/>
+      </xs:restriction>
+    </xs:simpleType>
+  </xs:element>
+
+  <xs:element name="stroke-width">
+    <xs:annotation>
+      <xs:documentation xml:lang="de">Strichstärke in SVG-Einheiten.</xs:documentation>
+      <xs:documentation xml:lang="en">Stroke width in SVG units.</xs:documentation>
+    </xs:annotation>
+    <xs:simpleType>
+      <xs:restriction base="xs:decimal">
+        <xs:minInclusive value="0"/>
+      </xs:restriction>
+    </xs:simpleType>
+  </xs:element>
+
+  <xs:element name="stroke-dasharray" type="xs:string">
+    <xs:annotation>
+      <xs:documentation xml:lang="de">Strichmuster, z. B. "2,2" für die
+        gestrichelte Darstellung der Wege.</xs:documentation>
+      <xs:documentation xml:lang="en">Dash pattern, e.g. "2,2" for the dashed
+        representation of the pathways.</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+
+  <xs:element name="stroke-miterlimit">
+    <xs:annotation>
+      <xs:documentation xml:lang="de">Nach SVG-Spezifikation eine Zahl größer
+        oder gleich 1. Die Werte "miter", "bevel" und "round" gehören zu
+        stroke-linejoin und sind hier ungültiges SVG; sie werden aus Gründen
+        der Abwärtskompatibilität weiterhin akzeptiert, sollten aber aus den
+        Stylesheets entfernt werden.</xs:documentation>
+      <xs:documentation xml:lang="en">Per the SVG specification a number
+        greater than or equal to 1. The values "miter", "bevel" and "round"
+        belong to stroke-linejoin and are invalid SVG here; they are still
+        accepted for backward compatibility but should be removed from the
+        stylesheets.</xs:documentation>
+    </xs:annotation>
+    <xs:simpleType>
+      <xs:union>
+        <xs:simpleType>
+          <xs:restriction base="xs:decimal">
+            <xs:minInclusive value="1"/>
+          </xs:restriction>
+        </xs:simpleType>
+        <xs:simpleType>
+          <xs:restriction base="xs:string">
+            <xs:enumeration value="inherit"/>
+            <!-- veraltet / deprecated -->
+            <xs:enumeration value="miter"/>
+            <xs:enumeration value="bevel"/>
+            <xs:enumeration value="round"/>
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:union>
+    </xs:simpleType>
+  </xs:element>
+
+  <xs:element name="stroke-linejoin">
+    <xs:simpleType>
+      <xs:restriction base="xs:string">
+        <xs:enumeration value="miter"/>
+        <xs:enumeration value="bevel"/>
+        <xs:enumeration value="round"/>
+        <xs:enumeration value="inherit"/>
+      </xs:restriction>
+    </xs:simpleType>
+  </xs:element>
+
+  <xs:element name="font-family" type="xs:string" default="Tahoma, Tahoma"/>
+  <xs:element name="font-size" type="xs:decimal"/>
+
+  <!-- ==================================================================
+       Layerzuordnung / Layer assignment
+       ================================================================== -->
+
+  <xs:element name="dxf_layer_sequence">
+    <xs:annotation>
+      <xs:documentation xml:lang="de">Zuordnung der DXF-Layer zu Gruppen und
+        Styles. Da das Layerset nicht standardisiert ist, ist dieser Abschnitt
+        für jede Zeichnung anzupassen. Nicht aufgeführte Layer werden nicht
+        übernommen.</xs:documentation>
+      <xs:documentation xml:lang="en">Assignment of the DXF layers to groups and
+        styles. Since the layer set is not standardised, this section must be
+        adapted for every drawing. Layers not listed are not
+        transferred.</xs:documentation>
+    </xs:annotation>
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element maxOccurs="unbounded" ref="layer"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="layer">
+    <xs:complexType>
+      <xs:attributeGroup ref="layer_attribs"/>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:attributeGroup name="layer_attribs">
+    <xs:attribute ref="layer_name" use="required"/>
+    <xs:attribute ref="map_to" use="required"/>
+    <xs:attribute ref="style_ref" use="required"/>
+    <xs:attribute ref="marker-type" use="required"/>
+    <xs:attribute ref="marker-size"/>
+    <xs:attribute ref="marker_array"/>
+  </xs:attributeGroup>
+
+  <xs:attribute name="layer_name" type="xs:string">
+    <xs:annotation>
+      <xs:documentation xml:lang="de">Exakter Layername in der DXF-Datei.</xs:documentation>
+      <xs:documentation xml:lang="en">Exact layer name in the DXF file.</xs:documentation>
+    </xs:annotation>
+  </xs:attribute>
+
+  <xs:attribute name="map_to" type="xs:IDREF">
+    <xs:annotation>
+      <xs:documentation xml:lang="de">group_name der Zielgruppe.</xs:documentation>
+      <xs:documentation xml:lang="en">group_name of the target group.</xs:documentation>
+    </xs:annotation>
+  </xs:attribute>
+
+  <xs:attribute name="marker-type">
+    <xs:annotation>
+      <xs:documentation xml:lang="de">Geometrieform im SVG. "path": Polygon
+        übernehmen. "circle": durch Kreis mit marker-size ersetzen. "array":
+        reserviert. Verpflichtend: Ohne diese Angabe ist nicht entscheidbar, ob
+        ein path oder ein circle entstehen soll. Der frühere Vorgabewert "path"
+        entfällt, weil er eine Entscheidung unterstellte, die das Stylesheet
+        nicht hergibt — und weil "default" mit use="required" ohnehin
+        unzulässig ist.</xs:documentation>
+      <xs:documentation xml:lang="en">Geometry form in the SVG. "path": keep the
+        polygon. "circle": replace with a circle of marker-size. "array":
+        reserved. Mandatory: without it there is no deciding whether a path or
+        a circle should be produced. The former default "path" is dropped
+        because it presumed a decision the stylesheet does not provide — and
+        because "default" is not permitted together with use="required"
+        anyway.</xs:documentation>
+    </xs:annotation>
+    <xs:simpleType>
+      <xs:restriction base="xs:string">
+        <xs:enumeration value="path"/>
+        <xs:enumeration value="circle"/>
+        <xs:enumeration value="array"/>
+      </xs:restriction>
+    </xs:simpleType>
+  </xs:attribute>
+
+  <xs:attribute name="marker-size" type="xs:float">
+    <xs:annotation>
+      <xs:documentation xml:lang="de">Radius bei marker-type="circle". Für
+        path-Layer bedeutungslos und deshalb im Schema optional, bei
+        marker-type="circle" jedoch zwingend. Diese Bedingung lässt sich in
+        XSD 1.0 nicht ausdrücken; der Transformer prüft sie und meldet einen
+        StylesheetError.</xs:documentation>
+      <xs:documentation xml:lang="en">Radius when marker-type="circle".
+        Meaningless for path layers and therefore optional in the schema, but
+        mandatory with marker-type="circle". This condition cannot be expressed
+        in XSD 1.0; the transformer checks it and reports a
+        StylesheetError.</xs:documentation>
+    </xs:annotation>
+  </xs:attribute>
+
+  <xs:attribute name="marker_array" type="xs:string">
+    <xs:annotation>
+      <xs:documentation xml:lang="de">Reserviert für marker-type="array".</xs:documentation>
+      <xs:documentation xml:lang="en">Reserved for marker-type="array".</xs:documentation>
+    </xs:annotation>
+  </xs:attribute>
+
+  <!-- ==================================================================
+       Referenzen / References
+       ================================================================== -->
+
+  <xs:element name="dxf_references">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="reference_frame"/>
+        <xs:element minOccurs="0" maxOccurs="unbounded" ref="reference_declaration"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="reference_frame">
+    <xs:annotation>
+      <xs:documentation xml:lang="de">Layer des Referenzrahmens. Er muss genau
+        ein Rechteck (LWPOLYLINE mit vier Punkten) und genau einen Punkt
+        (POINT) im gewünschten Nullpunkt enthalten.</xs:documentation>
+      <xs:documentation xml:lang="en">Layer of the reference frame. It must
+        contain exactly one rectangle (LWPOLYLINE with four vertices) and
+        exactly one point (POINT) at the intended origin.</xs:documentation>
+    </xs:annotation>
+    <xs:complexType>
+      <xs:attribute ref="layer_name" use="required"/>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="reference_declaration">
+    <xs:annotation>
+      <xs:documentation xml:lang="de">Layer mit Bezeichnungsfeldern (TEXT oder
+        MTEXT) samt Latenzrechteck. Innerhalb dieses Rechtecks um den
+        Ankerpunkt wird ein Polygon-Eckpunkt als Treffer gewertet. Ziel ist
+        genau ein Treffer je Grabstätten-Polygon. Hinweis: Der Transformer
+        wertet derzeit nur die erste Deklaration aus; bei mehreren sollten die
+        Offsets identisch sein.</xs:documentation>
+      <xs:documentation xml:lang="en">Layer with label fields (TEXT or MTEXT)
+        including the latency rectangle. Within this rectangle around the
+        anchor point, a polygon vertex counts as a match. The aim is exactly
+        one match per grave polygon. Note: the transformer currently evaluates
+        only the first declaration; with several, the offsets should be
+        identical.</xs:documentation>
+    </xs:annotation>
+    <xs:complexType>
+      <xs:sequence maxOccurs="4" minOccurs="4">
+        <xs:element ref="offset"/>
+      </xs:sequence>
+      <xs:attribute ref="layer_name" use="required"/>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="offset">
+    <xs:annotation>
+      <xs:documentation xml:lang="de">Grenze des Latenzrechtecks relativ zum
+        Ankerpunkt, in DXF-Einheiten. Üblich sind negative Werte für x1 und y2,
+        positive für x2 und y1.</xs:documentation>
+      <xs:documentation xml:lang="en">Boundary of the latency rectangle relative
+        to the anchor point, in DXF units. Negative values are usual for x1 and
+        y2, positive ones for x2 and y1.</xs:documentation>
+    </xs:annotation>
+    <xs:complexType>
+      <xs:simpleContent>
+        <xs:extension base="xs:decimal">
+          <xs:attribute ref="offset_vert" use="required"/>
+        </xs:extension>
+      </xs:simpleContent>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:attribute name="offset_vert">
+    <xs:annotation>
+      <xs:documentation xml:lang="de">x1 = links, x2 = rechts, y1 = oben,
+        y2 = unten.</xs:documentation>
+      <xs:documentation xml:lang="en">x1 = left, x2 = right, y1 = top,
+        y2 = bottom.</xs:documentation>
+    </xs:annotation>
+    <xs:simpleType>
+      <xs:restriction base="xs:NMTOKEN">
+        <xs:enumeration value="x1"/>
+        <xs:enumeration value="x2"/>
+        <xs:enumeration value="y1"/>
+        <xs:enumeration value="y2"/>
+      </xs:restriction>
+    </xs:simpleType>
+  </xs:attribute>
+
+  <!-- ==================================================================
+       Plankopf / Title block
+       ================================================================== -->
+
+  <xs:element name="svg_element_sequence">
+    <xs:annotation>
+      <xs:documentation xml:lang="de">Statische Elemente des Plankopfs. Sie
+        werden in die Gruppe "title-block" unterhalb der Planzeichnung
+        einsortiert (Basis-Y = Planhöhe + 30 px).</xs:documentation>
+      <xs:documentation xml:lang="en">Static elements of the title block. They
+        are placed in the "title-block" group below the plan drawing
+        (base Y = plan height + 30 px).</xs:documentation>
+    </xs:annotation>
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element maxOccurs="unbounded" minOccurs="0" ref="svg_element"/>
+      </xs:sequence>
+      <xs:attribute ref="scale_factor"/>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:attribute name="scale_factor" type="xs:decimal"/>
+
+  <xs:element name="svg_element">
+    <xs:annotation>
+      <xs:documentation xml:lang="de">Eine Plankopf-Gruppe. Die Gruppennamen
+        "north-arrow", "scale-bar" und "plan_header" lösen eine
+        Spezialbehandlung aus: Nordpfeil mit Rotation, berechnete
+        Maßstabsleiste, Textblock. Alle übrigen Gruppen werden unverändert
+        übernommen. Unterstützt werden ausschließlich die Kindelemente path,
+        circle, rect und tspan; max_scale ist nur bei "scale-bar"
+        auszuwerten.</xs:documentation>
+      <xs:documentation xml:lang="en">One title-block group. The group names
+        "north-arrow", "scale-bar" and "plan_header" trigger special handling:
+        rotated north arrow, computed scale bar, text block. All other groups
+        are copied unchanged. Only the child elements path, circle, rect and
+        tspan are supported; max_scale is evaluated for "scale-bar"
+        only.</xs:documentation>
+    </xs:annotation>
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" ref="max_scale"/>
+        <xs:choice minOccurs="0" maxOccurs="unbounded">
+          <xs:element ref="path"/>
+          <xs:element ref="circle"/>
+          <xs:element ref="rect"/>
+          <xs:element ref="tspan"/>
+        </xs:choice>
+      </xs:sequence>
+      <xs:attribute ref="group_name" use="required"/>
+      <xs:attribute ref="style_ref" use="required"/>
+      <xs:attribute ref="map_to" use="required"/>
+      <xs:attribute ref="translate-x"/>
+      <xs:attribute ref="translate-y"/>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:attribute name="translate-x" type="xs:float"/>
+  <xs:attribute name="translate-y" type="xs:float"/>
+
+  <xs:element name="max_scale" type="xs:integer">
+    <xs:annotation>
+      <xs:documentation xml:lang="de">Länge der Maßstabsleiste in Metern.</xs:documentation>
+      <xs:documentation xml:lang="en">Length of the scale bar in metres.</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+
+  <xs:element name="path">
+    <xs:complexType>
+      <xs:attribute name="d" type="xs:string" use="required"/>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="circle">
+    <xs:complexType>
+      <xs:attribute name="cx" type="xs:float" use="required"/>
+      <xs:attribute name="cy" type="xs:float" use="required"/>
+      <xs:attribute name="r" type="xs:float" use="required"/>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="rect">
+    <xs:annotation>
+      <xs:documentation xml:lang="de">width und height sind optional, weil das
+        erste rect der Maßstabsleiste nur als Vorlage für x, y und height dient
+        und die Breite berechnet wird. In allen übrigen Gruppen müssen alle
+        vier Attribute gesetzt sein, sonst wird das Element
+        übergangen.</xs:documentation>
+      <xs:documentation xml:lang="en">width and height are optional because the
+        first rect of the scale bar only serves as a template for x, y and
+        height, the width being computed. In all other groups all four
+        attributes must be set, otherwise the element is
+        skipped.</xs:documentation>
+    </xs:annotation>
+    <xs:complexType>
+      <xs:attribute name="x" type="xs:float" use="required"/>
+      <xs:attribute name="y" type="xs:float" use="required"/>
+      <xs:attribute name="width" type="xs:float"/>
+      <xs:attribute name="height" type="xs:float"/>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="tspan">
+    <xs:annotation>
+      <xs:documentation xml:lang="de">Textzeile. two-digit-x korrigiert bei der
+        Maßstabsleiste den Versatz mehrstelliger Zahlen.</xs:documentation>
+      <xs:documentation xml:lang="en">Line of text. In the scale bar,
+        two-digit-x corrects the offset of multi-digit numbers.</xs:documentation>
+    </xs:annotation>
+    <xs:complexType>
+      <xs:simpleContent>
+        <xs:extension base="xs:string">
+          <xs:attribute name="x" type="xs:float" use="required"/>
+          <xs:attribute name="y" type="xs:float" use="required"/>
+          <xs:attribute name="two-digit-x" type="xs:float"/>
+        </xs:extension>
+      </xs:simpleContent>
+    </xs:complexType>
+  </xs:element>
+
+</xs:schema>

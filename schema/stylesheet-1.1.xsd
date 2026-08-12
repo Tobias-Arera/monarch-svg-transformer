@@ -1,0 +1,247 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+  xmlns:vc="http://www.w3.org/2007/XMLSchema-versioning"
+  vc:minVersion="1.1"
+  elementFormDefault="qualified">
+
+  <xs:annotation>
+    <xs:documentation xml:lang="de">
+      Strenge Variante des MonArch-Stylesheet-Schemas, Stand 2026-08-12.
+
+      Diese Datei übernimmt per xs:override das vollständige Schema aus
+      stylesheet.xsd und ergänzt Regeln, die sich in XSD 1.0 nicht ausdrücken
+      lassen, weil sie eine Bedingung zwischen mehreren Angaben herstellen.
+      Umgesetzt sind sie als xs:assert (XSD 1.1).
+
+      Wozu zwei Dateien: xs:assert ist eine Neuerung von XSD 1.1. Validierer,
+      die nur XSD 1.0 beherrschen — darunter lxml und xmllint, also auch die
+      Python-Validierung —, brechen die Übersetzung eines Schemas mit
+      Assertions ab. stylesheet.xsd bleibt deshalb reines XSD 1.0 und
+      universell verwendbar; diese Datei ergänzt die strengeren Prüfungen für
+      Validierer, die XSD 1.1 unterstützen (Xerces im 1.1-Modus, Saxon EE, das
+      Python-Paket xmlschema).
+
+      Verwendung in oXygen: Konfiguration > Validierungsszenario > als Schema
+      diese Datei wählen und als Schemaversion "XML Schema 1.1" einstellen.
+      Die Dateien selbst verweisen per xsi:noNamespaceSchemaLocation weiterhin
+      auf stylesheet.xsd; das Validierungsszenario hat Vorrang.
+
+      Geprüft werden zusätzlich:
+      1. marker-size ist bei marker-type="circle" erforderlich und darf nur
+         dort stehen.
+      2. Die vier offset-Angaben eines Latenzrechtecks tragen vier
+         verschiedene offset_vert-Werte, und das Rechteck ist nicht entartet
+         (x1 &lt; x2 und y2 &lt; y1).
+      3. Das Plankopf-Element "scale-bar" braucht max_scale, ein rect als
+         Vorlage und ein tspan als Beschriftungsvorlage; max_scale darf nur
+         dort stehen. "plan_header" braucht mindestens ein tspan.
+      4. Mindestens ein Layer verweist auf die active-group, sonst enthält der
+         Plan keine annotierbaren Elemente.
+
+      Dokumentation: README.md, docs/stylesheet.md
+    </xs:documentation>
+    <xs:documentation xml:lang="en">
+      Strict variant of the MonArch stylesheet schema, as of 2026-08-12.
+
+      This file adopts the complete schema from stylesheet.xsd via xs:override
+      and adds rules that cannot be expressed in XSD 1.0 because they relate
+      several entries to one another. They are implemented as xs:assert
+      (XSD 1.1).
+
+      Why two files: xs:assert is an addition of XSD 1.1. Validators limited to
+      XSD 1.0 — among them lxml and xmllint, and therefore the Python-side
+      validation — abort compilation of a schema containing assertions.
+      stylesheet.xsd therefore stays pure XSD 1.0 and universally usable; this
+      file adds the stricter checks for validators supporting XSD 1.1 (Xerces
+      in 1.1 mode, Saxon EE, the Python package xmlschema).
+
+      Use in oXygen: Configure > Validation scenario > select this file as the
+      schema and set the schema version to "XML Schema 1.1". The documents
+      themselves keep pointing at stylesheet.xsd via
+      xsi:noNamespaceSchemaLocation; the validation scenario takes precedence.
+
+      Additionally checked:
+      1. marker-size is required with marker-type="circle" and permitted only
+         there.
+      2. The four offset entries of a latency rectangle carry four distinct
+         offset_vert values, and the rectangle is not degenerate
+         (x1 &lt; x2 and y2 &lt; y1).
+      3. The title-block element "scale-bar" needs max_scale, a rect as
+         template and a tspan as label template; max_scale is permitted only
+         there. "plan_header" needs at least one tspan.
+      4. At least one layer points to the active-group, otherwise the plan
+         contains no annotatable elements.
+
+      Documentation: README.md, docs/stylesheet.md
+    </xs:documentation>
+  </xs:annotation>
+
+  <xs:override schemaLocation="stylesheet.xsd">
+
+    <!-- ================================================================
+         Wurzelelement / Root element
+         ================================================================ -->
+
+    <xs:element name="MonArch_stylesheet">
+      <xs:complexType>
+        <xs:sequence>
+          <xs:element ref="svg_group_sequence"/>
+          <xs:element ref="svg_style_sequence"/>
+          <xs:element ref="dxf_layer_sequence"/>
+          <xs:element ref="dxf_references"/>
+          <xs:element minOccurs="0" ref="svg_element_sequence"/>
+        </xs:sequence>
+        <xs:attribute ref="class" use="required"/>
+        <xs:attribute ref="svg_width" use="required"/>
+        <xs:attribute ref="map_id" use="required"/>
+        <xs:attribute ref="set_aks"/>
+
+        <xs:assert
+          test="every $g in svg_group_sequence/active-group/@group_name
+                satisfies exists(dxf_layer_sequence/layer[@map_to = $g])">
+          <xs:annotation>
+            <xs:documentation xml:lang="de">Mindestens ein Layer muss auf die
+              active-group verweisen, sonst entstehen keine annotierbaren
+              Elemente.</xs:documentation>
+            <xs:documentation xml:lang="en">At least one layer must point to
+              the active-group, otherwise no annotatable elements are
+              produced.</xs:documentation>
+          </xs:annotation>
+        </xs:assert>
+      </xs:complexType>
+    </xs:element>
+
+    <!-- ================================================================
+         Layer
+         ================================================================ -->
+
+    <xs:element name="layer">
+      <xs:complexType>
+        <xs:attributeGroup ref="layer_attribs"/>
+
+        <xs:assert test="not(@marker-type = 'circle') or exists(@marker-size)">
+          <xs:annotation>
+            <xs:documentation xml:lang="de">marker-type="circle" erfordert
+              marker-size als Radius des Symbols.</xs:documentation>
+            <xs:documentation xml:lang="en">marker-type="circle" requires
+              marker-size as the radius of the symbol.</xs:documentation>
+          </xs:annotation>
+        </xs:assert>
+
+        <xs:assert test="not(exists(@marker-size)) or @marker-type = 'circle'">
+          <xs:annotation>
+            <xs:documentation xml:lang="de">marker-size ist nur bei
+              marker-type="circle" wirksam und deutet sonst auf einen
+              vergessenen Wechsel der Geometrieform hin.</xs:documentation>
+            <xs:documentation xml:lang="en">marker-size only takes effect with
+              marker-type="circle" and otherwise indicates a forgotten change
+              of the geometry form.</xs:documentation>
+          </xs:annotation>
+        </xs:assert>
+      </xs:complexType>
+    </xs:element>
+
+    <!-- ================================================================
+         Latenzrechteck / Latency rectangle
+         ================================================================ -->
+
+    <xs:element name="reference_declaration">
+      <xs:complexType>
+        <xs:sequence maxOccurs="4" minOccurs="4">
+          <xs:element ref="offset"/>
+        </xs:sequence>
+        <xs:attribute ref="layer_name" use="required"/>
+
+        <xs:assert test="count(distinct-values(offset/@offset_vert)) = 4">
+          <xs:annotation>
+            <xs:documentation xml:lang="de">Die vier offset-Angaben müssen x1,
+              x2, y1 und y2 abdecken; ein doppelter Wert lässt eine Kante des
+              Latenzrechtecks undefiniert.</xs:documentation>
+            <xs:documentation xml:lang="en">The four offset entries must cover
+              x1, x2, y1 and y2; a duplicate leaves one edge of the latency
+              rectangle undefined.</xs:documentation>
+          </xs:annotation>
+        </xs:assert>
+
+        <xs:assert
+          test="number(offset[@offset_vert = 'x1'])
+                &lt; number(offset[@offset_vert = 'x2'])
+                and number(offset[@offset_vert = 'y2'])
+                &lt; number(offset[@offset_vert = 'y1'])">
+          <xs:annotation>
+            <xs:documentation xml:lang="de">Das Latenzrechteck darf nicht
+              entartet sein: x1 muss kleiner als x2 und y2 kleiner als y1 sein.
+              Üblich sind negative Werte für x1 und y2, positive für x2 und y1.
+              Bei vertauschten Vorzeichen findet die Zuordnung kein einziges
+              Polygon.</xs:documentation>
+            <xs:documentation xml:lang="en">The latency rectangle must not be
+              degenerate: x1 must be smaller than x2 and y2 smaller than y1.
+              Negative values are usual for x1 and y2, positive ones for x2 and
+              y1. With the signs swapped, the assignment finds not a single
+              polygon.</xs:documentation>
+          </xs:annotation>
+        </xs:assert>
+      </xs:complexType>
+    </xs:element>
+
+    <!-- ================================================================
+         Plankopf / Title block
+         ================================================================ -->
+
+    <xs:element name="svg_element">
+      <xs:complexType>
+        <xs:sequence>
+          <xs:element minOccurs="0" ref="max_scale"/>
+          <xs:choice minOccurs="0" maxOccurs="unbounded">
+            <xs:element ref="path"/>
+            <xs:element ref="circle"/>
+            <xs:element ref="rect"/>
+            <xs:element ref="tspan"/>
+          </xs:choice>
+        </xs:sequence>
+        <xs:attribute ref="group_name" use="required"/>
+        <xs:attribute ref="style_ref" use="required"/>
+        <xs:attribute ref="map_to" use="required"/>
+        <xs:attribute ref="translate-x"/>
+        <xs:attribute ref="translate-y"/>
+
+        <xs:assert
+          test="not(@group_name = 'scale-bar')
+                or (exists(max_scale) and exists(rect) and exists(tspan))">
+          <xs:annotation>
+            <xs:documentation xml:lang="de">Die Maßstabsleiste benötigt
+              max_scale als Länge in Metern, ein rect als Vorlage für x, y und
+              Höhe sowie ein tspan als Vorlage für die
+              Beschriftung.</xs:documentation>
+            <xs:documentation xml:lang="en">The scale bar requires max_scale as
+              the length in metres, a rect as template for x, y and height, and
+              a tspan as template for the labels.</xs:documentation>
+          </xs:annotation>
+        </xs:assert>
+
+        <xs:assert test="not(exists(max_scale)) or @group_name = 'scale-bar'">
+          <xs:annotation>
+            <xs:documentation xml:lang="de">max_scale wird nur in der Gruppe
+              scale-bar ausgewertet und andernorts stillschweigend
+              übergangen.</xs:documentation>
+            <xs:documentation xml:lang="en">max_scale is evaluated only in the
+              scale-bar group and silently ignored
+              elsewhere.</xs:documentation>
+          </xs:annotation>
+        </xs:assert>
+
+        <xs:assert test="not(@group_name = 'plan_header') or exists(tspan)">
+          <xs:annotation>
+            <xs:documentation xml:lang="de">Der Plankopf-Text besteht aus
+              tspan-Zeilen; ohne sie bleibt die Gruppe leer.</xs:documentation>
+            <xs:documentation xml:lang="en">The title-block text consists of
+              tspan lines; without them the group stays
+              empty.</xs:documentation>
+          </xs:annotation>
+        </xs:assert>
+      </xs:complexType>
+    </xs:element>
+
+  </xs:override>
+
+</xs:schema>

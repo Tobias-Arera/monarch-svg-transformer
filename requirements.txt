@@ -1,0 +1,14 @@
+# Laufzeitabhängigkeiten des SVG-Transformers /
+# Runtime dependencies of the SVG transformer
+ezdxf>=1.0
+lxml>=4.9
+pandas>=1.5
+matplotlib>=3.6
+
+# Optional: Validierung der Stylesheets gegen XML Schema 1.1 /
+# Optional: validating the stylesheets against XML Schema 1.1
+# xmlschema>=3.0
+
+# Optional: Ausführen des Notebooks unter notebooks/ /
+# Optional: running the notebook under notebooks/
+# jupyterlab>=4.0
