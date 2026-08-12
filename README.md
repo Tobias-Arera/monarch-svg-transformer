@@ -562,3 +562,11 @@ StylesheetError: Layer 'Neue Steine Fragmente': marker-type='circle' erfordert d
 **DE** — Zur Zitation der Software siehe [CITATION.cff](CITATION.cff). Die epigraphischen Angaben in `examples/data/wld-belegung.csv` verweisen auf die Datenbank [epidat](https://www.steinheim-institut.de/) des Salomon-Ludwig-Steinheim-Instituts.
 
 **EN** — For citing the software see [CITATION.cff](CITATION.cff). The epigraphic entries in `examples/data/wld-belegung.csv` refer to the [epidat](https://www.steinheim-institut.de/) database of the Salomon Ludwig Steinheim Institute.
+
+---
+
+## Hinweis zur Entstehung / Note on how this was made
+
+**DE** — Dokumentation, Refactoring und der Aufbau dieses Repositorys entstanden KI-unterstützt (Claude, Anthropic). Fachliche Konzeption, Prüfung und Verantwortung für den Inhalt liegen beim Autor.
+
+**EN** — Documentation, refactoring and the setup of this repository were produced with AI assistance (Claude, Anthropic). The conceptual work, review and responsibility for the content rest with the author.

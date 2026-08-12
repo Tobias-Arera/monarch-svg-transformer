@@ -10,6 +10,10 @@
 
 Erste Veröffentlichung als Repository / first release as a repository.
 
+**DE** — Die Überarbeitung des Codes, die zweisprachige Dokumentation und der Aufbau dieses Repositorys entstanden KI-unterstützt (Claude, Anthropic). Fachliche Konzeption, Prüfung und Verantwortung liegen beim Autor.
+
+**EN** — The revision of the code, the bilingual documentation and the setup of this repository were produced with AI assistance (Claude, Anthropic). The conceptual work, review and responsibility rest with the author.
+
 ### Behoben / Fixed
 
 - **Zuordnung von MTEXT-Bezeichnungen.** `assign_numbers()` prüfte die Gültigkeit eines Bezeichnungsfeldes über die Anzahl der Dictionary-Schlüssel (`len(t) == 7`). `get_mtexts()` liefert nur sechs Schlüssel, weil MTEXT-Bezeichnungen keinen Sektor enthalten — MTEXT-Felder wurden dadurch nie zugeordnet. Geprüft wird jetzt das Vorhandensein von `Nummer` und `Anker`. / `assign_numbers()` checked validity via the number of dictionary keys; MTEXT labels carry only six and were never assigned. The presence of `Nummer` and `Anker` is checked instead.
